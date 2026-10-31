@@ -9,6 +9,7 @@ import { EASE_OUT, SPRING } from "@/lib/motion";
 import type { LinkStatus, Peer } from "@/lib/realtime";
 import type { ModelConfig, RatingValue, ShowcaseNote, Side, Verdict } from "@/lib/types";
 import type { Viewer } from "@/lib/viewer";
+import { InviteQR } from "./InviteQR";
 import { type Estimate, fmtDuration, initials, type Phase, type Placed, SIM_MINUTES_PER_RATING, VALUE_LABEL } from "./shared";
 
 /* ───────────────────────── Note card ───────────────────────── */
@@ -385,38 +386,7 @@ export function WhoIsHere({
 
 
 export function InviteButton({ noteId }: { noteId: string }) {
-  const [copied, setCopied] = useState(false);
-  function copy() {
-    const url = `${window.location.origin}/room/${noteId}`;
-    void navigator.clipboard
-      ?.writeText(url)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1800);
-      })
-      .catch(() => {});
-  }
-  return (
-    <button
-      onClick={copy}
-      className="pressable inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-medium hover:border-foreground/30"
-    >
-      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[1.7]" strokeLinecap="round" aria-hidden>
-        <path d="M8 12l4-4M7 9.5L5.5 11a2.5 2.5 0 0 0 3.5 3.5L10.5 13M13 10.5l1.5-1.5A2.5 2.5 0 0 0 11 5.5L9.5 7" />
-      </svg>
-      <AnimatePresence mode="popLayout" initial={false}>
-        <motion.span
-          key={copied ? "y" : "n"}
-          initial={{ opacity: 0, filter: "blur(2px)" }}
-          animate={{ opacity: 1, filter: "blur(0px)" }}
-          exit={{ opacity: 0, filter: "blur(2px)" }}
-          transition={{ duration: 0.15 }}
-        >
-          {copied ? "Link copied" : "Invite"}
-        </motion.span>
-      </AnimatePresence>
-    </button>
-  );
+  return <InviteQR noteId={noteId} />;
 }
 
 /* ───────────────────────── Activity feed ───────────────────────── */
