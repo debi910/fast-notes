@@ -18,15 +18,17 @@ export function NoteCard({ note }: { note: ShowcaseNote }) {
   return (
     <section className="card overflow-hidden">
       <div className="flex items-center gap-3 px-5 pt-5">
-        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-2">
-          <svg viewBox="0 0 24 24" className="h-5 w-5 fill-muted" aria-hidden>
-            <circle cx="12" cy="8" r="4" />
-            <path d="M4 21a8 8 0 0 1 16 0z" />
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-foreground">
+          <svg viewBox="0 0 24 24" className="h-4 w-4 fill-background" aria-hidden>
+            <path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.3L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8zM16.7 19.2h1.7L7.2 4.7H5.4z" />
           </svg>
-        </div>
-        <div className="min-w-0 flex-1">
-          <div className="h-2.5 w-28 rounded-full bg-line" />
-          <div className="mt-1.5 h-2 w-16 rounded-full bg-line/70" />
+        </span>
+        <div className="min-w-0 flex-1 leading-tight">
+          <div className="text-sm font-semibold">Post on X</div>
+          <div className="text-xs text-muted">
+            {note.timeline.hoursPostToNote !== null ? `Note written ${fmtDuration(note.timeline.hoursPostToNote)} after the post` : "Note written after the post"} ·{" "}
+            {note.ratings.length} ratings on X
+          </div>
         </div>
         <a
           className="pressable shrink-0 rounded-full border border-line px-3 py-1 text-xs font-medium text-muted hover:text-foreground"
@@ -34,12 +36,8 @@ export function NoteCard({ note }: { note: ShowcaseNote }) {
           target="_blank"
           rel="noreferrer"
         >
-          View post on X ↗
+          Open post ↗
         </a>
-      </div>
-      <div className="mx-5 mt-4 space-y-2">
-        <div className="h-2.5 w-full rounded-full bg-surface-2" />
-        <div className="h-2.5 w-4/5 rounded-full bg-surface-2" />
       </div>
       <div className="m-5 rounded-2xl border border-line bg-surface-2/60 p-4">
         <div className="flex items-center gap-2 text-xs font-semibold">
@@ -56,8 +54,7 @@ export function NoteCard({ note }: { note: ShowcaseNote }) {
           </span>
         </div>
         <p className="mt-2 text-[15px] leading-relaxed">{note.summary}</p>
-        <p className="mt-2 text-xs text-muted">Is this note helpful? This room decides.</p>
-      </div>
+              </div>
     </section>
   );
 }
@@ -107,10 +104,10 @@ export function Steps({
   const s3 = verdict !== "UNDECIDED";
   const first = !s1 ? 0 : !s2 ? 1 : !s3 ? 2 : 3;
   const rows = [
-    { done: s1, title: "Enough people rated", detail: `${Math.min(n, minRatings)} of ${minRatings}` },
+    { done: s1, title: "Enough ratings", detail: `${Math.min(n, minRatings)} of ${minRatings}` },
     {
       done: s2,
-      title: "Both sides weighed in",
+      title: "Both sides heard",
       detail: (
         <>
           <span className="text-side-a">A {Math.min(a, target)}/{target}</span> ·{" "}
@@ -120,85 +117,23 @@ export function Steps({
     },
     {
       done: s3,
-      title: verdict === "NOT_HELPFUL" ? "Both sides call it unhelpful" : "Both sides agree it helps",
+      title: "Both sides agree",
       detail: s3 ? (verdict === "HELPFUL" ? "Helpful" : "Not helpful") : "waiting",
     },
   ];
   return (
-    <ol className="grid gap-2 sm:grid-cols-3">
+    <ol className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-0">
       {rows.map((r, i) => (
-        <li
-          key={i}
-          className={`flex items-center gap-3 rounded-xl border p-3 transition-colors duration-300 ${first === i ? "border-foreground/25 bg-surface" : "border-line bg-surface-2/50"}`}
-        >
+        <li key={i} className="flex flex-1 items-center gap-2.5">
           <Check done={r.done} active={first === i} />
           <div className="min-w-0">
-            <div className="text-sm font-medium leading-tight">{r.title}</div>
-            <div className="tabular mt-0.5 text-xs text-muted">{r.detail}</div>
+            <div className={`text-[13px] font-medium leading-tight ${r.done || first === i ? "" : "text-muted"}`}>{r.title}</div>
+            <div className="tabular text-xs text-muted">{r.detail}</div>
           </div>
+          {i < rows.length - 1 && <span className={`mx-3 hidden h-px flex-1 sm:block ${r.done ? "bg-good" : "bg-line"}`} />}
         </li>
       ))}
     </ol>
-  );
-}
-
-/* ───────────────────────── Race: X vs this room ───────────────────────── */
-
-export function Race({ note, ratings, phase }: { note: ShowcaseNote; ratings: number; phase: Phase }) {
-  const xh = note.timeline.hoursNoteToStatus;
-  const roomH = (ratings * SIM_MINUTES_PER_RATING) / 60;
-  const scale = xh ?? 24;
-  const pct = Math.max(1.2, Math.min(100, (roomH / scale) * 100));
-  const factor = xh && roomH > 0 ? Math.round(xh / roomH) : null;
-  return (
-    <section className="card p-5">
-      <div className="flex items-baseline justify-between gap-3">
-        <h2 className="font-semibold">How long until a verdict?</h2>
-        <AnimatePresence>
-          {phase === "settled" && factor && factor > 1 && (
-            <motion.span
-              initial={{ opacity: 0, transform: "scale(0.8)" }}
-              animate={{ opacity: 1, transform: "scale(1)" }}
-              transition={SPRING}
-              className="rounded-full bg-good/12 px-2.5 py-1 text-xs font-semibold text-good"
-            >
-              {factor}× faster
-            </motion.span>
-          )}
-        </AnimatePresence>
-      </div>
-      <div className="mt-4 space-y-4 text-sm">
-        <div>
-          <div className="flex justify-between">
-            <span className="font-medium">Community Notes on X</span>
-            <span className="tabular text-muted">{xh === null ? "never decided" : fmtDuration(xh)}</span>
-          </div>
-          <div className="mt-1.5 h-3 overflow-hidden rounded-full bg-surface-2">
-            <motion.div
-              className={`h-full rounded-full ${xh === null ? "bg-[repeating-linear-gradient(45deg,var(--late)_0_6px,transparent_6px_12px)]" : "bg-late"}`}
-              initial={{ width: 0 }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 1.1, ease: EASE_OUT }}
-            />
-          </div>
-        </div>
-        <div>
-          <div className="flex justify-between">
-            <span className="font-medium">This room</span>
-            <span className="tabular text-muted">
-              {ratings === 0 ? "starting" : `~${fmtDuration(roomH)}`}
-              {phase !== "settled" && ratings > 0 ? " so far" : ""}
-            </span>
-          </div>
-          <div className="mt-1.5 h-3 overflow-hidden rounded-full bg-surface-2">
-            <motion.div className="h-full rounded-full bg-good" animate={{ width: `${pct}%` }} transition={{ duration: 0.5, ease: EASE_OUT }} />
-          </div>
-        </div>
-      </div>
-      <p className="mt-3 text-xs text-muted">
-        X time is this note&apos;s real delay from note to status. Room time assumes one rating every ~30 s.
-      </p>
-    </section>
   );
 }
 
@@ -362,16 +297,13 @@ export function WhoIsHere({
   placed,
   status,
   waitingFor,
-  noteId,
 }: {
   peers: Peer[];
   me: Peer;
   placed: Placed[];
   status: LinkStatus;
   waitingFor: string | null;
-  noteId: string;
 }) {
-  const [copied, setCopied] = useState(false);
   const bots = placed.filter((p) => p.kind === "bot");
   const botA = bots.filter((p) => p.side === "A").length;
   const botB = bots.filter((p) => p.side === "B").length;
@@ -384,17 +316,6 @@ export function WhoIsHere({
       : status === "local"
         ? { dot: "bg-side-b", text: "Live in this browser" }
         : { dot: "bg-muted", text: "Connecting…" };
-
-  function copy() {
-    const url = `${window.location.origin}/room/${noteId}`;
-    void navigator.clipboard
-      ?.writeText(url)
-      .then(() => {
-        setCopied(true);
-        setTimeout(() => setCopied(false), 1800);
-      })
-      .catch(() => {});
-  }
 
   return (
     <section className="card p-5">
@@ -442,9 +363,9 @@ export function WhoIsHere({
         </AnimatePresence>
       </ul>
 
-      <div className="mt-4 rounded-xl bg-surface-2/70 p-3 text-xs text-muted">
+      <div className="mt-3 rounded-xl bg-surface-2/70 p-3 text-xs text-muted">
         <div className="flex items-center justify-between">
-          <span>Replayed real raters</span>
+          <span title="Real raters\u2019 actual ratings on this note fill the seats no human has taken">Real raters replayed</span>
           <span className="tabular font-medium text-foreground">{bots.length}</span>
         </div>
         <div className="mt-2 flex h-1.5 overflow-hidden rounded-full bg-line">
@@ -452,36 +373,59 @@ export function WhoIsHere({
           <motion.div className="bg-side-c" animate={{ flexGrow: botC }} style={{ flexBasis: 0 }} transition={{ duration: 0.4 }} />
           <motion.div className="bg-side-b" animate={{ flexGrow: botB }} style={{ flexBasis: 0 }} transition={{ duration: 0.4 }} />
         </div>
-        <p className="mt-2">Real raters&apos; actual ratings on this note fill the seats no human has taken.</p>
+        
       </div>
 
-      <button
-        onClick={copy}
-        className="pressable mt-4 flex w-full items-center justify-center gap-2 rounded-full bg-foreground px-4 py-2.5 text-sm font-medium text-background hover:opacity-90"
-      >
-        <AnimatePresence mode="popLayout" initial={false}>
-          <motion.span
-            key={copied ? "y" : "n"}
-            initial={{ opacity: 0, transform: "translateY(6px)", filter: "blur(2px)" }}
-            animate={{ opacity: 1, transform: "translateY(0px)", filter: "blur(0px)" }}
-            exit={{ opacity: 0, transform: "translateY(-6px)", filter: "blur(2px)" }}
-            transition={{ duration: 0.2, ease: EASE_OUT }}
-          >
-            {copied ? "Link copied ✓" : "Invite someone from the other side"}
-          </motion.span>
-        </AnimatePresence>
-      </button>
+      <div className="mt-4 border-t border-line/70 pt-4">
+        <Feed placed={placed} meId={me.id} embedded />
+      </div>
     </section>
+  );
+}
+
+
+export function InviteButton({ noteId }: { noteId: string }) {
+  const [copied, setCopied] = useState(false);
+  function copy() {
+    const url = `${window.location.origin}/room/${noteId}`;
+    void navigator.clipboard
+      ?.writeText(url)
+      .then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      })
+      .catch(() => {});
+  }
+  return (
+    <button
+      onClick={copy}
+      className="pressable inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3.5 py-1.5 text-sm font-medium hover:border-foreground/30"
+    >
+      <svg viewBox="0 0 20 20" className="h-4 w-4 fill-none stroke-current stroke-[1.7]" strokeLinecap="round" aria-hidden>
+        <path d="M8 12l4-4M7 9.5L5.5 11a2.5 2.5 0 0 0 3.5 3.5L10.5 13M13 10.5l1.5-1.5A2.5 2.5 0 0 0 11 5.5L9.5 7" />
+      </svg>
+      <AnimatePresence mode="popLayout" initial={false}>
+        <motion.span
+          key={copied ? "y" : "n"}
+          initial={{ opacity: 0, filter: "blur(2px)" }}
+          animate={{ opacity: 1, filter: "blur(0px)" }}
+          exit={{ opacity: 0, filter: "blur(2px)" }}
+          transition={{ duration: 0.15 }}
+        >
+          {copied ? "Link copied" : "Invite"}
+        </motion.span>
+      </AnimatePresence>
+    </button>
   );
 }
 
 /* ───────────────────────── Activity feed ───────────────────────── */
 
-export function Feed({ placed, meId }: { placed: Placed[]; meId: string }) {
-  const items = placed.map((p, i) => ({ p, i })).slice(-7).reverse();
+export function Feed({ placed, meId, embedded }: { placed: Placed[]; meId: string; embedded?: boolean }) {
+  const items = placed.map((p, i) => ({ p, i })).slice(embedded ? -5 : -7).reverse();
   return (
-    <section className="card p-5">
-      <h2 className="font-semibold">Live activity</h2>
+    <section className={embedded ? "" : "card p-5"}>
+      <h2 className={embedded ? "text-xs font-semibold uppercase tracking-wide text-muted" : "font-semibold"}>Latest ratings</h2>
       <ul className="mt-3 space-y-0.5">
         <AnimatePresence initial={false}>
           {items.map(({ p, i }) => (
@@ -531,20 +475,34 @@ export function UnderTheHood({
 }) {
   const tabs = ["Evidence brief", "Rating map", "Model numbers"] as const;
   const [tab, setTab] = useState<(typeof tabs)[number]>("Evidence brief");
+  const [open, setOpen] = useState(false);
   return (
     <section className="card p-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-semibold">Under the hood</h2>
-        <div className="flex rounded-full bg-surface-2 p-1 text-xs font-medium">
-          {tabs.map((t) => (
-            <button key={t} onClick={() => setTab(t)} className={`relative rounded-full px-3 py-1.5 ${tab === t ? "text-foreground" : "text-muted hover:text-foreground"}`}>
-              {tab === t && (
-                <motion.span layoutId="hood-tab" className="absolute inset-0 rounded-full bg-surface shadow-sm" transition={SPRING} />
-              )}
-              <span className="relative">{t}</span>
-            </button>
-          ))}
+      <button onClick={() => setOpen((o) => !o)} className="flex w-full items-center justify-between gap-3 text-left" aria-expanded={open}>
+        <div>
+          <h2 className="font-semibold">How the verdict is worked out</h2>
+          <p className="text-xs text-muted">Evidence brief, every rating plotted, and the model&apos;s numbers</p>
         </div>
+        <motion.svg viewBox="0 0 20 20" className="h-5 w-5 shrink-0 fill-none stroke-muted stroke-2" animate={{ rotate: open ? 180 : 0 }} transition={{ duration: 0.2, ease: EASE_OUT }} aria-hidden>
+          <path d="M5 8l5 5 5-5" strokeLinecap="round" strokeLinejoin="round" />
+        </motion.svg>
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: "auto", opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: EASE_OUT }}
+            className="overflow-hidden"
+          >
+      <div className="mt-4 flex w-fit rounded-full bg-surface-2 p-1 text-xs font-medium">
+        {tabs.map((t) => (
+          <button key={t} onClick={() => setTab(t)} className={`relative rounded-full px-3 py-1.5 ${tab === t ? "text-foreground" : "text-muted hover:text-foreground"}`}>
+            {tab === t && <motion.span layoutId="hood-tab" className="absolute inset-0 rounded-full bg-surface shadow-sm" transition={SPRING} />}
+            <span className="relative">{t}</span>
+          </button>
+        ))}
       </div>
       <AnimatePresence mode="wait" initial={false}>
         <motion.div
@@ -573,6 +531,9 @@ export function UnderTheHood({
           {tab === "Rating map" && <RatingMap placed={placed} meId={meId} />}
           {tab === "Model numbers" && <ModelNumbers est={est} model={model} n={placed.length} />}
         </motion.div>
+      </AnimatePresence>
+          </motion.div>
+        )}
       </AnimatePresence>
     </section>
   );
@@ -755,15 +716,29 @@ export function Settled({
             {verdict === "UNDECIDED" ? `No consensus after ${n} ratings` : verdict === "HELPFUL" ? "Helpful. Both sides agree." : "Not helpful, across both sides."}
           </h2>
           <p className="mt-1 text-sm text-muted">
-            Settled in <b className="text-foreground">~{fmtDuration(roomH)}</b> with {n} ratings
-            {xh !== null ? (
-              <>
-                . X took <b className="text-foreground">{fmtDuration(xh)}</b>.
-              </>
-            ) : (
-              ". X never reached a decision."
-            )}
+            {n} ratings{xh !== null && roomH > 0 ? `, about ${Math.round(xh / roomH)}× faster than the real note on X` : ""}.
           </p>
+        </div>
+      </div>
+      <div className="mt-5 space-y-2.5 rounded-xl bg-surface-2/60 p-4 text-sm">
+        <div className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-3">
+          <span className="text-muted">On X</span>
+          <div className="h-2 overflow-hidden rounded-full bg-line">
+            <motion.div className="h-full rounded-full bg-late" initial={{ width: 0 }} animate={{ width: "100%" }} transition={{ duration: 0.9, ease: EASE_OUT }} />
+          </div>
+          <span className="tabular text-right font-medium">{xh === null ? "never" : fmtDuration(xh)}</span>
+        </div>
+        <div className="grid grid-cols-[6.5rem_1fr_4.5rem] items-center gap-3">
+          <span className="text-muted">This room</span>
+          <div className="h-2 overflow-hidden rounded-full bg-line">
+            <motion.div
+              className="h-full rounded-full bg-good"
+              initial={{ width: 0 }}
+              animate={{ width: `${Math.max(1.5, Math.min(100, (roomH / (xh ?? 24)) * 100))}%` }}
+              transition={{ duration: 0.9, delay: 0.3, ease: EASE_OUT }}
+            />
+          </div>
+          <span className="tabular text-right font-medium">~{fmtDuration(roomH)}</span>
         </div>
       </div>
       <div className="mt-5 flex flex-wrap gap-2 text-sm">
@@ -772,7 +747,7 @@ export function Settled({
         </button>
         {nextId && (
           <Link href={`/room/${nextId}`} className="pressable rounded-full bg-foreground px-4 py-2 font-medium text-background hover:opacity-90">
-            Try another note →
+            Next note →
           </Link>
         )}
       </div>

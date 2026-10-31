@@ -54,10 +54,10 @@ export default function Home() {
                 <span className="rounded-full bg-background/15 px-2 py-0.5 text-xs">30 sec</span>
               </Link>
               <Link
-                href="/calibrate?next=/room/demo%3Finvite%3D1"
+                href="/notes"
                 className="pressable inline-flex items-center justify-center rounded-full border border-line bg-surface px-6 py-3.5 font-medium hover:border-foreground/30"
               >
-                Open a room with friends
+                Browse open notes
               </Link>
             </div>
           </Reveal>
@@ -142,30 +142,31 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Real vs simulated */}
+      {/* Who it's for */}
       <section className="mx-auto max-w-6xl px-4 py-14">
-        <div className="grid gap-5 md:grid-cols-2">
-          <Reveal className="card p-6">
-            <h3 className="flex items-center gap-2 font-semibold">
-              <span className="h-2 w-2 rounded-full bg-good" /> Real
-            </h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted">
-              <li>Notes, ratings and raters from X&apos;s public Community Notes data</li>
-              <li>Each note&apos;s real timeline: when it was written and when X decided</li>
-              <li>The bridging model, refit in your browser after every rating</li>
-            </ul>
-          </Reveal>
-          <Reveal delay={0.08} className="card p-6">
-            <h3 className="flex items-center gap-2 font-semibold">
-              <span className="h-2 w-2 rounded-full bg-side-b" /> Simulated
-            </h3>
-            <ul className="mt-3 space-y-2 text-sm text-muted">
-              <li>Live arrival times in the room (about one rating every 30 s)</li>
-              <li>Bots that replay real raters&apos; actual ratings when you play solo</li>
-              <li>No integration with X: rooms are standalone</li>
-            </ul>
-          </Reveal>
+        <Reveal>
+          <p className="text-sm font-semibold uppercase tracking-wider text-side-b">Where it fits</p>
+          <h2 className="mt-2 max-w-[26ch] text-3xl font-semibold sm:text-4xl">A fast lane for the notes that matter most right now.</h2>
+        </Reveal>
+        <div className="mt-8 grid gap-px overflow-hidden rounded-2xl border border-line bg-line md:grid-cols-3">
+          {[
+            { t: "Community Notes contributors", b: "Get pinged only when your side is the one a note is missing. No endless queue of notes you can't move." },
+            { t: "Platforms", b: "Open a room for a fast-spreading post and get a bridged verdict before most reposts happen." },
+            { t: "Newsrooms and fact-checkers", b: "Run the same room with your own reader panel during breaking news, with a record of how both sides rated." },
+          ].map((x, i) => (
+            <Reveal key={x.t} delay={i * 0.06} className="bg-surface p-6">
+              <h3 className="font-semibold">{x.t}</h3>
+              <p className="mt-2 text-sm text-muted">{x.b}</p>
+            </Reveal>
+          ))}
         </div>
+        <p className="mt-4 text-sm text-muted">
+          Notes, ratings and timelines are real public data; live arrival in rooms is simulated.{" "}
+          <Link href="/results" className="font-medium text-foreground underline underline-offset-4">
+            See the replay results
+          </Link>
+          .
+        </p>
         <Reveal className="mt-10 flex flex-col items-center gap-4 text-center">
           <h2 className="text-3xl font-semibold">See one settle in 30 seconds.</h2>
           <Link

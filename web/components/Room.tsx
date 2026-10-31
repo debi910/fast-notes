@@ -3,7 +3,8 @@
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Bridge } from "@/components/room/Bridge";
-import { Feed, NoteCard, Race, Settled, Steps, UnderTheHood, WhoIsHere, YourSeat } from "@/components/room/Panels";
+import Link from "next/link";
+import { InviteButton, NoteCard, Settled, Steps, UnderTheHood, WhoIsHere, YourSeat } from "@/components/room/Panels";
 import type { Placed, RoomMsg, RoomState } from "@/components/room/shared";
 import { buildBrief } from "@/lib/brief";
 import { findNote, loadRaters, loadShowcase, useData } from "@/lib/data";
@@ -207,7 +208,8 @@ function RoomInner({
     send({ t: "restart" });
   }
 
-  const nextNote = allNotes.find((n) => n.fitted.verdict !== "UNDECIDED" && n.id !== note.id) ?? null;
+  const idx = allNotes.findIndex((n) => n.id === note.id);
+  const nextNote = [...allNotes.slice(idx + 1), ...allNotes.slice(0, idx)].find((n) => n.fitted.verdict !== "UNDECIDED") ?? null;
   const brief = buildBrief(note, placed, est, threshold, model);
   const a = placed.filter((p) => p.side === "A").length;
   const b = placed.filter((p) => p.side === "B").length;
@@ -225,19 +227,31 @@ function RoomInner({
   const seat = (
     <YourSeat me={me} viewer={viewer} needed={needed} myRating={myRating} phase={phase} noteId={note.id} onRate={rate} />
   );
+  const statusPill =
+    phase === "settled"
+      ? { cls: est.verdict === "HELPFUL" ? "bg-good/12 text-good" : est.verdict === "NOT_HELPFUL" ? "bg-late/12 text-late" : "bg-surface-2 text-muted", text: est.verdict === "HELPFUL" ? "Rated helpful" : est.verdict === "NOT_HELPFUL" ? "Rated not helpful" : "No consensus" }
+      : miss.side
+        ? { cls: miss.side === "A" ? "bg-side-a/12 text-side-a" : "bg-side-b/12 text-side-b", text: `Needs Side ${miss.side}` }
+        : { cls: "bg-surface-2 text-muted", text: "Needs more ratings" };
 
   return (
-    <div className="relative">
-      <div className="dot-grid pointer-events-none absolute inset-x-0 top-0 h-80 [mask-image:linear-gradient(black,transparent)]" />
-      <div className="relative mx-auto grid w-full max-w-6xl gap-5 px-4 py-6 lg:grid-cols-[1.6fr_1fr]">
-        <div className="min-w-0 space-y-5">
-          {isMock && (
-            <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs text-muted">
-              <span className="h-1.5 w-1.5 rounded-full bg-side-b" />
-              Mock data while the real Community Notes replay is computed
-            </p>
-          )}
+    <div className="mx-auto w-full max-w-6xl px-4 py-5">
+      <div className="mb-5 flex flex-wrap items-center gap-3">
+        <Link href="/notes" className="text-sm text-muted hover:text-foreground">
+          ← All notes
+        </Link>
+        <span className="text-line">/</span>
+        <span className="text-sm font-medium">Note {note.id.toUpperCase()}</span>
+        <motion.span key={statusPill.text} initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.2 }} className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${statusPill.cls}`}>
+          {statusPill.text}
+        </motion.span>
+        <div className="ml-auto">
+          <InviteButton noteId={note.id} />
+        </div>
+      </div>
 
+      <div className="grid gap-5 lg:grid-cols-[1.55fr_1fr]">
+        <div className="min-w-0 space-y-5">
           <NoteCard note={note} />
 
           <div className="lg:hidden">{seat}</div>
@@ -247,39 +261,39 @@ function RoomInner({
           )}
 
           <section className="card overflow-hidden">
-            <div className="px-5 pt-5">
-              <div className="flex items-baseline justify-between gap-3">
-                <h2 className="font-semibold">Is there a bridge between the sides?</h2>
-                <span className="tabular text-xs text-muted">{placed.length} rating{placed.length === 1 ? "" : "s"}</span>
+            <div className="flex items-start justify-between gap-3 px-5 pt-5">
+              <div>
+                <h2 className="font-semibold">Progress to a verdict</h2>
+                <motion.p
+                  key={headline}
+                  initial={{ opacity: 0, filter: "blur(3px)" }}
+                  animate={{ opacity: 1, filter: "blur(0px)" }}
+                  transition={{ duration: 0.3, ease: EASE_OUT }}
+                  className="mt-0.5 text-sm text-muted"
+                  aria-live="polite"
+                >
+                  {headline}
+                </motion.p>
               </div>
-              <motion.p
-                key={headline}
-                initial={{ opacity: 0, filter: "blur(3px)" }}
-                animate={{ opacity: 1, filter: "blur(0px)" }}
-                transition={{ duration: 0.3, ease: EASE_OUT }}
-                className="mt-1 text-sm text-muted"
-                aria-live="polite"
-              >
-                {headline}
-              </motion.p>
+              <span className="tabular shrink-0 text-xs text-muted">
+                {placed.length} rating{placed.length === 1 ? "" : "s"}
+              </span>
             </div>
-            <div className="px-2 pt-2">
+            <div className="px-2">
               <Bridge placed={placed} target={target} verdict={est.verdict} missing={miss.side} phase={phase} />
             </div>
-            <div className="border-t border-line/70 p-4">
+            <div className="border-t border-line/70 px-5 py-4">
               <Steps n={placed.length} minRatings={model.minRatings} a={a} b={b} target={target} verdict={est.verdict} />
             </div>
           </section>
 
-          <Race note={note} ratings={placed.length} phase={phase} />
-
           <UnderTheHood placed={placed} est={est} model={model} brief={brief} meId={me.id} />
+          {isMock && <p className="text-xs text-muted">Showing mock data while the real Community Notes replay is computed.</p>}
         </div>
 
         <aside className="min-w-0 space-y-5 lg:sticky lg:top-20 lg:self-start">
           <div className="hidden lg:block">{seat}</div>
-          <WhoIsHere peers={humans} me={me} placed={placed} status={status} waitingFor={state.waitingFor} noteId={note.id} />
-          <Feed placed={placed} meId={me.id} />
+          <WhoIsHere peers={humans} me={me} placed={placed} status={status} waitingFor={state.waitingFor} />
         </aside>
       </div>
     </div>
