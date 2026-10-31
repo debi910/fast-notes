@@ -2,5 +2,22 @@ node_modules/
 dist/
 .env
 .env.*
+!.env.example
 .DS_Store
 .trmi/
+
+# Next.js
+web/.next/
+web/out/
+web/next-env.d.ts
+*.tsbuildinfo
+.vercel/
+
+# Python
+pipeline/.venv/
+__pycache__/
+*.pyc
+
+# Raw Community Notes downloads (huge; never commit)
+data/raw/
+data/interim/

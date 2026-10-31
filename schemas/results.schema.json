@@ -1,0 +1,78 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fast-notes/results.schema.json",
+  "title": "Replay results: targeted vs random vs actual rating order",
+  "type": "object",
+  "required": ["schemaVersion", "isMock", "generatedAt", "sample", "modelAgreement", "summary", "perNote"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "isMock": { "type": "boolean" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "sample": {
+      "type": "object",
+      "required": ["ratingsFiles", "nNotes", "nHelpfulNotes", "nNmrNotes", "nRatings", "nRaters", "minRatingsPerNote", "minRatingsPerRater", "nShuffles"],
+      "additionalProperties": false,
+      "properties": {
+        "ratingsFiles": { "type": "array", "items": { "type": "string" } },
+        "dataSnapshotDate": { "type": ["string", "null"] },
+        "nNotes": { "type": "integer" },
+        "nHelpfulNotes": { "type": "integer" },
+        "nNmrNotes": { "type": "integer" },
+        "nRatings": { "type": "integer" },
+        "nRaters": { "type": "integer" },
+        "minRatingsPerNote": { "type": "integer" },
+        "minRatingsPerRater": { "type": "integer" },
+        "nShuffles": { "type": "integer" }
+      }
+    },
+    "modelAgreement": {
+      "type": "object",
+      "required": ["pctAgreement", "nCompared", "confusion"],
+      "additionalProperties": false,
+      "properties": {
+        "pctAgreement": { "type": "number", "description": "% of sampled notes where our verdict matches X's final status" },
+        "nCompared": { "type": "integer" },
+        "confusion": {
+          "type": "object",
+          "description": "keys 'xStatus->ourVerdict', values are counts",
+          "additionalProperties": { "type": "integer" }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "required": ["nReplayed", "medianKTargeted", "medianKRandom", "medianKActual", "medianHoursToKActual", "medianHoursNoteToStatus", "pctTargetedFaster", "pctTargetedNoSlower"],
+      "additionalProperties": false,
+      "properties": {
+        "nReplayed": { "type": "integer", "description": "helpful notes whose verdict settled under all orderings" },
+        "medianKTargeted": { "type": "number" },
+        "medianKRandom": { "type": "number" },
+        "medianKActual": { "type": "number" },
+        "medianHoursToKActual": { "type": "number", "description": "real hours from note to the K_actual-th rating" },
+        "medianHoursNoteToStatus": { "type": "number", "description": "real hours from note to X's status change" },
+        "pctTargetedFaster": { "type": "number", "description": "% of notes with K_targeted < K_random" },
+        "pctTargetedNoSlower": { "type": "number", "description": "% of notes with K_targeted <= K_random" }
+      }
+    },
+    "perNote": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["noteId", "nRatings", "xStatus", "ourVerdict", "kActual", "kRandomMedian", "kTargeted", "hoursToKActual", "hoursNoteToStatus"],
+        "additionalProperties": false,
+        "properties": {
+          "noteId": { "type": "string" },
+          "nRatings": { "type": "integer" },
+          "xStatus": { "enum": ["CURRENTLY_RATED_HELPFUL", "CURRENTLY_RATED_NOT_HELPFUL", "NEEDS_MORE_RATINGS"] },
+          "ourVerdict": { "enum": ["HELPFUL", "NOT_HELPFUL", "UNDECIDED"] },
+          "kActual": { "type": ["integer", "null"] },
+          "kRandomMedian": { "type": ["number", "null"] },
+          "kTargeted": { "type": ["integer", "null"] },
+          "hoursToKActual": { "type": ["number", "null"] },
+          "hoursNoteToStatus": { "type": ["number", "null"] }
+        }
+      }
+    }
+  }
+}

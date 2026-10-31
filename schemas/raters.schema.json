@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fast-notes/raters.schema.json",
+  "title": "Anonymised rater profiles (bots + sample viewers)",
+  "type": "object",
+  "required": ["schemaVersion", "isMock", "generatedAt", "sideThreshold", "raters"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "isMock": { "type": "boolean" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "sideThreshold": {
+      "type": "number",
+      "description": "|f_u| below this is shown as 'Centre'; otherwise side A (f_u < 0) or B (f_u > 0). Sides are neutral, never political labels."
+    },
+    "raters": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "intercept", "factor", "side", "nRatings"],
+        "additionalProperties": false,
+        "properties": {
+          "id": { "type": "string", "pattern": "^r[0-9]{4,6}$", "description": "anonymised; same id space as showcase ratings" },
+          "intercept": { "type": "number" },
+          "factor": { "type": "number" },
+          "side": { "enum": ["A", "B", "C"] },
+          "nRatings": { "type": "integer", "minimum": 0, "description": "ratings by this rater in our sample" },
+          "isSampleViewer": { "type": "boolean", "description": "offered by 'use a sample viewer'" }
+        }
+      }
+    }
+  }
+}

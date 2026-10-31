@@ -1,0 +1,116 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "fast-notes/showcase_notes.schema.json",
+  "title": "Showcase notes for the room and calibration",
+  "description": "Real Community Notes with their real ratings (rater ids anonymised) and real timelines. rating ~ mu + i_u + i_n + f_u * f_n.",
+  "type": "object",
+  "required": ["schemaVersion", "isMock", "generatedAt", "model", "calibrationNoteIds", "notes"],
+  "additionalProperties": false,
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "isMock": { "type": "boolean", "description": "true until the real pipeline output replaces this file" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "model": { "$ref": "#/$defs/model" },
+    "calibrationNoteIds": {
+      "type": "array",
+      "items": { "type": "string" },
+      "minItems": 5,
+      "maxItems": 5,
+      "description": "Ids of notes (in `notes`) used for viewer calibration; chosen with spread-out f_n"
+    },
+    "notes": { "type": "array", "items": { "$ref": "#/$defs/note" }, "minItems": 1 }
+  },
+  "$defs": {
+    "model": {
+      "type": "object",
+      "required": ["mu", "lambdaIntercept", "lambdaFactor", "helpfulInterceptMin", "maxAbsFactor", "minRatings", "ratingValues"],
+      "additionalProperties": false,
+      "properties": {
+        "mu": { "type": "number", "description": "global intercept" },
+        "lambdaIntercept": { "type": "number", "description": "L2 weight on intercepts (about 5x lambdaFactor)" },
+        "lambdaFactor": { "type": "number", "description": "L2 weight on factors" },
+        "helpfulInterceptMin": { "type": "number", "description": "i_n >= this to count as helpful (0.40)" },
+        "maxAbsFactor": { "type": "number", "description": "|f_n| < this to count as helpful (0.5)" },
+        "minRatings": { "type": "integer", "description": "ratings needed before any verdict (5)" },
+        "ratingValues": {
+          "type": "object",
+          "required": ["HELPFUL", "SOMEWHAT_HELPFUL", "NOT_HELPFUL"],
+          "properties": {
+            "HELPFUL": { "const": 1 },
+            "SOMEWHAT_HELPFUL": { "const": 0.5 },
+            "NOT_HELPFUL": { "const": 0 }
+          }
+        }
+      }
+    },
+    "status": {
+      "enum": ["CURRENTLY_RATED_HELPFUL", "CURRENTLY_RATED_NOT_HELPFUL", "NEEDS_MORE_RATINGS"]
+    },
+    "verdict": { "enum": ["HELPFUL", "NOT_HELPFUL", "UNDECIDED"] },
+    "rating": {
+      "type": "object",
+      "required": ["raterId", "value", "hoursAfterNote", "raterIntercept", "raterFactor"],
+      "additionalProperties": false,
+      "properties": {
+        "raterId": { "type": "string", "pattern": "^r[0-9]{4,6}$", "description": "anonymised; never a real X participant id" },
+        "value": { "enum": [0, 0.5, 1] },
+        "hoursAfterNote": { "type": "number", "minimum": 0, "description": "real time of this rating relative to note creation" },
+        "raterIntercept": { "type": "number", "description": "frozen i_u from the global fit" },
+        "raterFactor": { "type": "number", "description": "frozen f_u from the global fit" }
+      }
+    },
+    "replay": {
+      "type": "object",
+      "required": ["kActual", "kRandomMedian", "kTargeted", "hoursToKActual"],
+      "additionalProperties": false,
+      "properties": {
+        "kActual": { "type": ["integer", "null"], "description": "ratings until stable final verdict, real time order" },
+        "kRandomMedian": { "type": ["number", "null"], "description": "median over 50 random shuffles" },
+        "kTargeted": { "type": ["integer", "null"], "description": "our order: most under-represented factor sign first" },
+        "hoursToKActual": { "type": ["number", "null"], "description": "real hours from note creation to the kActual-th rating" },
+        "targetedOrder": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "raterIds in targeted order (drives the solo-judge bot replay)"
+        }
+      }
+    },
+    "note": {
+      "type": "object",
+      "required": ["id", "noteId", "tweetId", "summary", "classification", "timeline", "fitted", "ratings", "replay"],
+      "additionalProperties": false,
+      "properties": {
+        "id": { "type": "string", "pattern": "^n[0-9]{3,5}$", "description": "short id used in /room/[id]" },
+        "noteId": { "type": "string", "description": "public Community Notes note id" },
+        "tweetId": { "type": "string", "description": "public post id; post time derivable from snowflake" },
+        "summary": { "type": "string", "description": "note text as published" },
+        "classification": { "enum": ["MISINFORMED_OR_POTENTIALLY_MISLEADING", "NOT_MISLEADING"] },
+        "timeline": {
+          "type": "object",
+          "required": ["postCreatedAtMs", "noteCreatedAtMs", "statusChangedAtMs", "finalStatus", "hoursPostToNote", "hoursNoteToStatus"],
+          "additionalProperties": false,
+          "properties": {
+            "postCreatedAtMs": { "type": ["integer", "null"], "description": "from tweetId snowflake: (id >> 22) + 1288834974657" },
+            "noteCreatedAtMs": { "type": "integer" },
+            "statusChangedAtMs": { "type": ["integer", "null"], "description": "timestampMillisOfFirstNonNMRStatus; null if stayed NMR" },
+            "finalStatus": { "$ref": "#/$defs/status" },
+            "hoursPostToNote": { "type": ["number", "null"] },
+            "hoursNoteToStatus": { "type": ["number", "null"] }
+          }
+        },
+        "fitted": {
+          "type": "object",
+          "required": ["intercept", "factor", "verdict"],
+          "additionalProperties": false,
+          "properties": {
+            "intercept": { "type": "number", "description": "i_n from the global fit on all sampled ratings" },
+            "factor": { "type": "number", "description": "f_n from the global fit" },
+            "verdict": { "$ref": "#/$defs/verdict" }
+          }
+        },
+        "ratings": { "type": "array", "items": { "$ref": "#/$defs/rating" }, "description": "sorted by hoursAfterNote" },
+        "replay": { "$ref": "#/$defs/replay" }
+      }
+    }
+  }
+}
