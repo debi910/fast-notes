@@ -85,10 +85,34 @@ def load_sample(max_notes: int, since_days: int, seed: int) -> tuple[pd.DataFram
         dtype={"noteId": str},
     )
     status = status[status["currentStatus"].isin(X_STATUS)]
-    cutoff = status["createdAtMillis"].max() - since_days * 86_400_000
-    status = status[status["createdAtMillis"] >= cutoff]
+
+    # Pass 1: count ratings per note in the ratings file(s) we actually have.
+    # X splits ratings across many files and we only download one or two, so the
+    # date range they cover is unknown. Pick candidates from what is really there
+    # instead of assuming "the last N days" (which can match nothing).
+    known = set(status["noteId"])
+    counts = pd.Series(dtype="int64")
+    t0 = time.time()
+    for rf in ratings_f:
+        for i, ch in enumerate(pd.read_csv(rf, sep="\t", usecols=["noteId"], dtype={"noteId": str}, chunksize=4_000_000, quoting=3, on_bad_lines="skip")):
+            vc = ch["noteId"][ch["noteId"].isin(known)].value_counts()
+            counts = counts.add(vc, fill_value=0)
+            print(f"\r  counting {Path(rf).name} chunk {i + 1} ({time.time() - t0:.0f}s)", end="", flush=True)
+        print()
+    rich = counts[counts >= MIN_NOTE_RATINGS].index
+    pool = status[status["noteId"].isin(rich)].copy()
+    if pool.empty:
+        sys.exit("No note has enough ratings in the downloaded ratings file(s). Download another one: download.py --ratings 2")
+    if since_days > 0:
+        cutoff = pool["createdAtMillis"].max() - since_days * 86_400_000
+        recent = pool[pool["createdAtMillis"] >= cutoff]
+        if len(recent) >= max_notes:
+            pool = recent
+    # Keep the most recent notes per status (plenty of headroom for the later filters).
+    pool = pool.sort_values("createdAtMillis", ascending=False).groupby("currentStatus", group_keys=False).head(max_notes * 3)
+    status = pool
     cand = set(status["noteId"])
-    print(f"candidate notes (last {since_days} d): {len(cand):,}")
+    print(f"candidate notes with >= {MIN_NOTE_RATINGS} ratings in sample: {len(cand):,} (of {len(rich):,})")
 
     parts = []
     t0 = time.time()
@@ -108,6 +132,8 @@ def load_sample(max_notes: int, since_days: int, seed: int) -> tuple[pd.DataFram
             parts.append(ch)
             print(f"\r  {Path(rf).name} chunk {i + 1}: kept {sum(len(p) for p in parts):,} ratings ({time.time() - t0:.0f}s)", end="", flush=True)
         print()
+    if not parts:
+        sys.exit("Ratings file(s) had no rows. Check data/raw/.")
     ratings = pd.concat(parts, ignore_index=True).drop_duplicates(["noteId", "raterParticipantId"], keep="last")
 
     # Iterative filter: notes >= 30 ratings, raters >= 10.
@@ -177,6 +203,36 @@ def fit(ratings: pd.DataFrame, p: ModelParams, iters: int, seed: int):
 # ───────────────────────── 5-7. replay + export ─────────────────────────
 
 
+def calibrate_thresholds(ratings: pd.DataFrame, p: ModelParams, rater_par: dict, status: pd.DataFrame) -> ModelParams:
+    """Pick the helpful / not-helpful intercept cut-offs that best match X's real statuses.
+
+    Our 1-D model is fitted on a sample of raters, so its intercept scale differs from
+    X's production scorer. Rather than copy X's 0.40, choose the cut-offs on a grid so our
+    verdicts agree with X as often as possible, and report that agreement honestly."""
+    st = status.set_index("noteId")["currentStatus"]
+    want = {"CURRENTLY_RATED_HELPFUL": "HELPFUL", "CURRENTLY_RATED_NOT_HELPFUL": "NOT_HELPFUL", "NEEDS_MORE_RATINGS": "UNDECIDED"}
+    fits = []
+    for nid, g in ratings.groupby("noteId"):
+        vals = g["value"].to_numpy(float)
+        ri = np.array([rater_par[u][0] for u in g["raterParticipantId"]])
+        rf = np.array([rater_par[u][1] for u in g["raterParticipantId"]])
+        i_n, f_n = refit_note(vals, ri, rf, p)
+        fits.append((i_n, f_n, len(vals), want[st[nid]]))
+    best = (-1.0, p)
+    for hi in np.arange(0.05, 0.61, 0.025):
+        for lo in np.arange(-0.40, 0.11, 0.025):
+            if lo > hi - 0.1:
+                continue
+            for mf in (0.4, 0.5, 0.6, 0.8):
+                q = ModelParams(mu=p.mu, helpful_intercept_min=round(float(hi), 3), not_helpful_intercept_max=round(float(lo), 3), max_abs_factor=mf)
+                acc = sum(verdict(i, f, n, q) == w for i, f, n, w in fits) / max(1, len(fits))
+                if acc > best[0] + 1e-9:
+                    best = (acc, q)
+    q = best[1]
+    print(f"calibrated cut-offs: helpful i_n >= {q.helpful_intercept_min}, |f_n| < {q.max_abs_factor}; not helpful i_n <= {q.not_helpful_intercept_max} (agreement {best[0]:.1%})")
+    return q
+
+
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--max-notes", type=int, default=1000)
@@ -189,7 +245,7 @@ def main() -> int:
     print("fitting model…")
     p0 = ModelParams(mu=0.0)
     mu, note_par, rater_par = fit(ratings, p0, args.iters, args.seed)
-    P = ModelParams(mu=round(mu, 4))
+    P = calibrate_thresholds(ratings, ModelParams(mu=round(mu, 4)), rater_par, status)
 
     abs_f = np.abs(np.array([f for _, f in rater_par.values()]))
     side_threshold = round(float(np.quantile(abs_f, 0.2)), 3)
@@ -319,6 +375,7 @@ def main() -> int:
             "lambdaFactor": P.lambda_factor,
             "helpfulInterceptMin": P.helpful_intercept_min,
             "maxAbsFactor": P.max_abs_factor,
+            "notHelpfulInterceptMax": P.not_helpful_intercept_max,
             "minRatings": P.min_ratings,
             "ratingValues": {"HELPFUL": 1, "SOMEWHAT_HELPFUL": 0.5, "NOT_HELPFUL": 0},
         },

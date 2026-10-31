@@ -10,6 +10,8 @@ export interface ModelConfig {
   lambdaIntercept: number;
   lambdaFactor: number;
   helpfulInterceptMin: number;
+  /** Optional; calibrated on the real sample. Falls back to -0.05. */
+  notHelpfulInterceptMax?: number;
   maxAbsFactor: number;
   minRatings: number;
   ratingValues: { HELPFUL: 1; SOMEWHAT_HELPFUL: 0.5; NOT_HELPFUL: 0 };

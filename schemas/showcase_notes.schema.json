@@ -31,6 +31,7 @@
         "lambdaFactor": { "type": "number", "description": "L2 weight on factors" },
         "helpfulInterceptMin": { "type": "number", "description": "i_n >= this to count as helpful (0.40)" },
         "maxAbsFactor": { "type": "number", "description": "|f_n| < this to count as helpful (0.5)" },
+        "notHelpfulInterceptMax": { "type": "number", "description": "i_n <= this to count as not helpful (default -0.05)" },
         "minRatings": { "type": "integer", "description": "ratings needed before any verdict (5)" },
         "ratingValues": {
           "type": "object",

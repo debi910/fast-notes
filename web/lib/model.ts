@@ -35,7 +35,7 @@ export function refitNote(ratings: PointRating[], m: ModelConfig): { intercept: 
 export function verdict(intercept: number, factor: number, nRatings: number, m: ModelConfig): Verdict {
   if (nRatings < m.minRatings) return "UNDECIDED";
   if (intercept >= m.helpfulInterceptMin && Math.abs(factor) < m.maxAbsFactor) return "HELPFUL";
-  if (intercept <= NOT_HELPFUL_INTERCEPT_MAX) return "NOT_HELPFUL";
+  if (intercept <= (m.notHelpfulInterceptMax ?? NOT_HELPFUL_INTERCEPT_MAX)) return "NOT_HELPFUL";
   return "UNDECIDED";
 }
 

@@ -17,6 +17,19 @@ const SERIES = [
   { key: "kActual", label: "Real order on X", cls: "fill-side-b", ring: false },
 ] as const;
 
+// The headline follows whatever the real replay shows. It never claims a speed-up
+// the data does not support.
+function headline(s: { medianKActual: number; medianKTargeted: number; medianHoursToKActual: number; medianHoursNoteToStatus: number }) {
+  const ratio = s.medianKTargeted > 0 ? s.medianKActual / s.medianKTargeted : 1;
+  if (ratio >= 1.25) {
+    const r = ratio >= 2 ? `${Math.round(ratio)}×` : `${Math.round((1 - 1 / ratio) * 100)}%`;
+    return `Asking the missing side first settles notes with ${r} fewer ratings.`;
+  }
+  if (s.medianHoursNoteToStatus > s.medianHoursToKActual * 1.5)
+    return `The ratings that decide a note are in after ${fmtDuration(s.medianHoursToKActual)}. X shows it after ${fmtDuration(s.medianHoursNoteToStatus)}.`;
+  return "What decides a note: the right raters, not more of them.";
+}
+
 export default function ResultsPage() {
   const { data, error } = useData(loadResults);
   const [hover, setHover] = useState<PerNoteResult | null>(null);
@@ -44,9 +57,7 @@ export default function ResultsPage() {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:py-12">
       <p className="text-sm font-semibold uppercase tracking-wider text-side-a">Replay experiment</p>
-      <h1 className="mt-2 max-w-[24ch] text-3xl font-semibold sm:text-4xl">
-        Asking the missing side first settles notes with {Math.round(s.medianKActual / s.medianKTargeted)}× fewer ratings.
-      </h1>
+      <h1 className="mt-2 max-w-[24ch] text-3xl font-semibold sm:text-4xl">{headline(s)}</h1>
       <p className="mt-3 max-w-[62ch] text-muted">
         We took {s.nReplayed} notes X rated helpful and replayed their real ratings three ways, refitting the bridging model after each
         one. We count how many ratings it takes until the verdict is final.
