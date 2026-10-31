@@ -82,18 +82,20 @@ p {
   transform: scale(0.97);
 }
 
-.card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 1.25rem;
-  box-shadow:
-    0 1px 0 rgb(0 0 0 / 0.02),
-    0 8px 24px -12px rgb(0 0 0 / 0.08);
-}
+@layer components {
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 1.25rem;
+    box-shadow:
+      0 1px 0 rgb(0 0 0 / 0.02),
+      0 8px 24px -12px rgb(0 0 0 / 0.08);
+  }
 
-.dot-grid {
-  background-image: radial-gradient(var(--line) 1px, transparent 1px);
-  background-size: 18px 18px;
+  .dot-grid {
+    background-image: radial-gradient(var(--line) 1px, transparent 1px);
+    background-size: 18px 18px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

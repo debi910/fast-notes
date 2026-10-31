@@ -1,3 +1,7 @@
+"use client";
+
+import { motion } from "motion/react";
+import { SPRING } from "@/lib/motion";
 import type { Side } from "@/lib/types";
 
 export const SIDE_LABEL: Record<Side, string> = { A: "Side A", B: "Side B", C: "Centre" };
@@ -11,18 +15,24 @@ export function ViewpointBar({ factor, side }: { factor: number; side: Side }) {
   const pct = ((Math.max(-RANGE, Math.min(RANGE, factor)) + RANGE) / (2 * RANGE)) * 100;
   return (
     <div>
-      <div className="relative h-3 rounded-full bg-gradient-to-r from-side-a/60 via-stone-200 to-side-b/60 dark:via-stone-700">
-        <div
-          className={`absolute top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2 rounded-full border-4 border-background ${SIDE_BG[side]} shadow transition-all duration-500`}
-          style={{ left: `${pct}%` }}
+      <div className="mb-2 flex items-baseline justify-between text-xs">
+        <span className="font-medium text-muted">Your viewpoint</span>
+        <span className={`font-semibold ${SIDE_TEXT[side]}`}>
+          {SIDE_LABEL[side]} <span className="font-mono font-normal tabular text-muted">({factor >= 0 ? "+" : ""}{factor.toFixed(2)})</span>
+        </span>
+      </div>
+      <div className="relative h-2.5 rounded-full bg-gradient-to-r from-side-a via-line to-side-b">
+        <div className="absolute left-1/2 top-1/2 h-4 w-px -translate-y-1/2 bg-muted/50" />
+        <motion.div
+          className={`absolute top-1/2 h-6 w-6 rounded-full border-[3px] border-surface ${SIDE_BG[side]} shadow-md`}
+          initial={{ left: "50%" }}
+          animate={{ left: `${pct}%` }}
+          transition={SPRING}
+          style={{ x: "-50%", y: "-50%" }}
         />
       </div>
-      <div className="mt-2 flex justify-between text-xs text-stone-500">
+      <div className="mt-1.5 flex justify-between text-[11px] font-medium">
         <span className="text-side-a">Side A</span>
-        <span>
-          You: {SIDE_LABEL[side]} ({factor >= 0 ? "+" : ""}
-          {factor.toFixed(2)})
-        </span>
         <span className="text-side-b">Side B</span>
       </div>
     </div>

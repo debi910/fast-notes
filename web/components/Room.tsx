@@ -803,9 +803,9 @@ function Meter({
           value={Math.abs(est.factor).toFixed(2)}
           pct={Math.min(1, Math.abs(est.factor))}
           markPct={model.maxAbsFactor}
-          ok={placed.length > 0 && Math.abs(est.factor) < model.maxAbsFactor}
+          ok={placed.length >= model.minRatings && Math.abs(est.factor) < model.maxAbsFactor}
           okText="Balanced across sides"
-          noText={placed.length ? "Too one-sided" : "No ratings yet"}
+          noText={placed.length < model.minRatings ? "Too few ratings to tell" : "Too one-sided"}
           invert
         />
       </div>
