@@ -1,30 +1,51 @@
 @import "tailwindcss";
 
 :root {
-  --background: #fafaf9;
-  --foreground: #1c1917;
-  --side-a: #0d9488;
-  --side-b: #7c3aed;
-  --side-c: #78716c;
+  --background: #f7f6f3;
+  --surface: #ffffff;
+  --surface-2: #f1efea;
+  --foreground: #16130f;
+  --muted: #6b665e;
+  --line: #e4e1da;
+  --side-a: #0f9488;
+  --side-b: #7c4dff;
+  --side-c: #8a847a;
+  --good: #16a34a;
+  --late: #e5484d;
 }
 
 @theme inline {
   --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
   --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
   --color-side-a: var(--side-a);
   --color-side-b: var(--side-b);
   --color-side-c: var(--side-c);
+  --color-good: var(--good);
+  --color-late: var(--late);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-serif: var(--font-serif);
+  --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0c0a09;
-    --foreground: #e7e5e4;
+    --background: #0e0d0c;
+    --surface: #1a1917;
+    --surface-2: #262420;
+    --foreground: #f0ede7;
+    --muted: #a39d93;
+    --line: #36332e;
     --side-a: #2dd4bf;
-    --side-b: #a78bfa;
-    --side-c: #a8a29e;
+    --side-b: #a68bff;
+    --side-c: #a39d93;
+    --good: #4ade80;
+    --late: #ff6b6f;
   }
 }
 
@@ -32,19 +53,51 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 
-@keyframes pop-in {
-  from {
-    transform: scale(0.4);
-    opacity: 0;
-  }
-  to {
-    transform: scale(1);
-    opacity: 1;
-  }
+h1,
+h2 {
+  letter-spacing: -0.02em;
+  text-wrap: balance;
 }
 
-.pop-in {
-  animation: pop-in 0.35s ease-out;
+p {
+  text-wrap: pretty;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Press feedback (Emil Kowalski: scale 0.97, strong ease-out, ~160ms). */
+.pressable {
+  transition:
+    transform 160ms var(--ease-out-strong),
+    background-color 150ms ease,
+    border-color 150ms ease,
+    opacity 150ms ease;
+}
+.pressable:active {
+  transform: scale(0.97);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 1px 0 rgb(0 0 0 / 0.02),
+    0 8px 24px -12px rgb(0 0 0 / 0.08);
+}
+
+.dot-grid {
+  background-image: radial-gradient(var(--line) 1px, transparent 1px);
+  background-size: 18px 18px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pressable:active {
+    transform: none;
+  }
 }
