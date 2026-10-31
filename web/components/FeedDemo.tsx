@@ -144,6 +144,59 @@ export function FeedDemo({ note, autoPlay = true }: { note: ShowcaseNote; autoPl
   );
 }
 
+const ICON = "h-[18px] w-[18px] fill-none stroke-current stroke-[1.75]";
+
+function Actions({ reposts, live }: { reposts: number; live: boolean }) {
+  const items = [
+    { n: reposts * 0.18, d: "M4 12a8 8 0 0 1 8-8h1a7 7 0 0 1 0 14h-1l-5 3v-4.5A8 8 0 0 1 4 12z", hl: "" },
+    { n: reposts, d: "M7 7h10v6M17 13l-3-3M17 13l3-3M17 17H7v-6M7 11l-3 3M7 11l3 3", hl: live ? "text-[#00ba7c]" : "" },
+    { n: reposts * 3.1, d: "M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z", hl: "" },
+    { n: reposts * 42, d: "M5 20V11M10 20V5M15 20v-7M20 20V9", hl: "" },
+  ];
+  return (
+    <div className="tabular mt-3 flex max-w-[420px] justify-between pr-2 text-[13px] text-[var(--x-muted)]">
+      {items.map((it, i) => (
+        <span key={i} className={`flex items-center gap-1 ${it.hl}`}>
+          <svg viewBox="0 0 24 24" className={ICON} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+            <path d={it.d} />
+          </svg>
+          {compact(it.n)}
+        </span>
+      ))}
+      <span className="flex items-center gap-3">
+        <svg viewBox="0 0 24 24" className={ICON} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M6 4h12v16l-6-4-6 4z" />
+        </svg>
+        <svg viewBox="0 0 24 24" className={ICON} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <path d="M12 3v12M7 8l5-5 5 5M5 14v6h14v-6" />
+        </svg>
+      </span>
+    </div>
+  );
+}
+
+function XNote({ text }: { text: string }) {
+  return (
+    <div className="mt-3 overflow-hidden rounded-2xl border border-[var(--x-line)]">
+      <div className="px-3 pt-3">
+        <div className="flex items-center gap-1.5 text-[15px] font-bold">
+          <svg viewBox="0 0 24 24" className="h-[18px] w-[18px] fill-[#1d9bf0]" aria-hidden>
+            <circle cx="8" cy="8" r="3" />
+            <circle cx="16" cy="8" r="3" />
+            <path d="M2 19a6 6 0 0 1 12 0zM10 19a6 6 0 0 1 12 0z" />
+          </svg>
+          Readers added context
+        </div>
+        <p className="mt-1.5 pb-3 text-[15px] leading-5">{text}</p>
+      </div>
+      <div className="flex items-center justify-between border-t border-[var(--x-line)] px-3 py-2.5 text-[13px]">
+        <span className="text-[var(--x-muted)]">Do you find this helpful?</span>
+        <span className="rounded-full border border-[var(--x-line)] px-3 py-0.5 font-bold">Rate it</span>
+      </div>
+    </div>
+  );
+}
+
 function Lane({
   title,
   tone,
@@ -184,59 +237,72 @@ function Lane({
                 : ""}
         </span>
       </div>
-      <div className="card flex-1 overflow-hidden">
+      <div className="xfeed flex-1 overflow-hidden rounded-2xl border border-[var(--x-line)] bg-[var(--x-bg)] text-[var(--x-fg)] shadow-[0_8px_24px_-12px_rgb(0_0_0/0.15)]">
+        {/* app chrome */}
+        <div className="border-b border-[var(--x-line)]">
+          <div className="relative flex h-11 items-center justify-center">
+            <span className="absolute left-4 h-7 w-7 rounded-full bg-[var(--x-soft)]" />
+            <svg viewBox="0 0 24 24" className="h-[22px] w-[22px] fill-[var(--x-fg)]" aria-label="X">
+              <path d="M17.8 3h3.1l-6.8 7.7L22 21h-6.2l-4.9-6.3L5.3 21H2.2l7.2-8.3L1.8 3h6.4l4.4 5.8zM16.7 19.2h1.7L7.2 4.7H5.4z" />
+            </svg>
+            <span className="absolute right-3 rounded-full bg-[var(--x-soft)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--x-muted)]">
+              Simulated
+            </span>
+          </div>
+          <div className="grid grid-cols-2 text-center text-[14px]">
+            <span className="relative py-2.5 font-bold">
+              For you
+              <span className="absolute bottom-0 left-1/2 h-1 w-14 -translate-x-1/2 rounded-full bg-[#1d9bf0]" />
+            </span>
+            <span className="py-2.5 text-[var(--x-muted)]">Following</span>
+          </div>
+        </div>
         <Filler i={0} />
         {/* the viral post */}
-        <article className="border-y border-line/70 px-4 py-4">
+        <article className="border-b border-[var(--x-line)] px-4 py-3">
           <div className="flex gap-3">
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-rose-500 text-sm font-bold text-white">
               DP
             </span>
             <div className="min-w-0 flex-1">
-              <div className="flex items-center gap-1.5 text-sm">
-                <span className="font-semibold">Daily Pulse</span>
-                <span className="truncate text-muted">@dailypulse_now · {t < 1 ? `${Math.max(1, Math.round(t * 60))}m` : `${Math.floor(t)}h`}</span>
+              <div className="flex items-center gap-1 text-[15px] leading-5">
+                <span className="font-bold">Daily Pulse</span>
+                <span className="truncate text-[var(--x-muted)]">@dailypulse_now · {t < 1 ? `${Math.max(1, Math.round(t * 60))}m` : `${Math.floor(t)}h`}</span>
               </div>
-              <p className="mt-1 text-[15px] leading-snug">{illustrativePost(note.summary)}</p>
+              <p className="mt-0.5 text-[15px] leading-5">{illustrativePost(note.summary)}</p>
 
               <AnimatePresence initial={false}>
-                {pending && (
+                {pending && room && (
                   <motion.div
-                    key="pending"
+                    key="room"
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
                     exit={{ opacity: 0, height: 0 }}
                     transition={{ duration: 0.25, ease: EASE_OUT }}
                     className="overflow-hidden"
                   >
-                    {room ? (
-                      <div className="mt-3 rounded-xl border border-side-a/40 bg-side-a/8 px-3 py-2.5 text-xs">
-                        <div className="flex items-center gap-2 font-semibold text-side-a">
-                          <span className="relative flex h-2 w-2">
-                            <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-side-a opacity-60" />
-                            <span className="relative inline-flex h-2 w-2 rounded-full bg-side-a" />
-                          </span>
-                          Live room open · inviting the missing side
-                        </div>
-                        <div className="mt-2 flex gap-1">
-                          {Array.from({ length: room.k }, (_, i) => (
-                            <motion.span
-                              key={i}
-                              className={`h-1.5 flex-1 rounded-full ${i < ratingsIn ? (i % 2 ? "bg-side-b" : "bg-side-a") : "bg-line"}`}
-                              animate={{ scaleY: i === ratingsIn - 1 ? [1, 1.8, 1] : 1 }}
-                              transition={{ duration: 0.3 }}
-                            />
-                          ))}
-                        </div>
-                        <div className="tabular mt-1.5 text-muted">
-                          {ratingsIn} of {room.k} ratings from both sides
-                        </div>
+                    <div className="mt-3 rounded-2xl border border-side-a/40 bg-side-a/8 px-3 py-2.5 text-xs">
+                      <div className="flex items-center gap-2 font-semibold text-side-a">
+                        <span className="relative flex h-2 w-2">
+                          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-side-a opacity-60" />
+                          <span className="relative inline-flex h-2 w-2 rounded-full bg-side-a" />
+                        </span>
+                        Fast Notes room open · inviting the missing side
                       </div>
-                    ) : (
-                      <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-surface-2 px-3 py-1.5 text-xs text-muted">
-                        <span className="h-1.5 w-1.5 rounded-full bg-muted" />A reader wrote a note · Needs more ratings
+                      <div className="mt-2 flex gap-1">
+                        {Array.from({ length: room.k }, (_, i) => (
+                          <motion.span
+                            key={i}
+                            className={`h-1.5 flex-1 rounded-full ${i < ratingsIn ? (i % 2 ? "bg-side-b" : "bg-side-a") : "bg-[var(--x-line)]"}`}
+                            animate={{ scaleY: i === ratingsIn - 1 ? [1, 1.8, 1] : 1 }}
+                            transition={{ duration: 0.3 }}
+                          />
+                        ))}
                       </div>
-                    )}
+                      <div className="tabular mt-1.5 text-[var(--x-muted)]">
+                        {ratingsIn} of {room.k} ratings from both sides
+                      </div>
+                    </div>
                   </motion.div>
                 )}
                 {shown && (
@@ -247,26 +313,15 @@ function Lane({
                     transition={{ duration: 0.45, ease: EASE_OUT }}
                     className="overflow-hidden"
                   >
-                    <div className="mt-3 rounded-xl border border-line bg-surface-2/70 p-3">
-                      <div className="flex items-center gap-1.5 text-xs font-semibold">
-                        <svg viewBox="0 0 20 20" className="h-3.5 w-3.5" aria-hidden>
-                          <circle cx="7" cy="8" r="3.2" className="fill-side-a" />
-                          <circle cx="13" cy="8" r="3.2" className="fill-side-b" />
-                        </svg>
-                        Readers added context
-                      </div>
-                      <p className="mt-1 text-[13px] leading-snug">{note.summary.replace(/^\[MOCK\]\s*/, "")}</p>
-                    </div>
+                    <XNote text={note.summary.replace(/^\[MOCK\]\s*/, "")} />
                   </motion.div>
                 )}
               </AnimatePresence>
 
-              <div className="tabular mt-3 flex justify-between text-xs text-muted">
-                <span>💬 {compact(reposts * 0.18)}</span>
-                <span className={shown ? "" : "font-semibold text-foreground"}>🔁 {compact(reposts)}</span>
-                <span>♡ {compact(reposts * 3.1)}</span>
-                <span>📊 {compact(reposts * 42)}</span>
-              </div>
+              <Actions reposts={reposts} live={!shown} />
+              {pending && !room && (
+                <p className="mt-2 text-[12px] text-[var(--x-muted)]">A note exists but readers can&apos;t see it yet: it needs more ratings.</p>
+              )}
             </div>
           </div>
         </article>
@@ -290,12 +345,13 @@ function Lane({
 
 function Filler({ i }: { i: number }) {
   const p = FILLER_POSTS[i];
+  const hues = ["from-sky-400 to-indigo-500", "from-emerald-400 to-teal-600"];
   return (
-    <div className="flex gap-3 px-4 py-3 opacity-55">
-      <span className="h-8 w-8 shrink-0 rounded-full bg-surface-2" />
-      <div className="min-w-0 text-[13px]">
-        <span className="font-semibold">{p.name}</span> <span className="text-muted">@{p.handle} · {p.time}</span>
-        <p className="leading-snug">{p.text}</p>
+    <div className="flex gap-3 border-b border-[var(--x-line)] px-4 py-3 last:border-0">
+      <span className={`h-10 w-10 shrink-0 rounded-full bg-gradient-to-br ${hues[i % 2]}`} />
+      <div className="min-w-0 text-[15px] leading-5">
+        <span className="font-bold">{p.name}</span> <span className="text-[var(--x-muted)]">@{p.handle} · {p.time}</span>
+        <p className="mt-0.5">{p.text}</p>
       </div>
     </div>
   );
