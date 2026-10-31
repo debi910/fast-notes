@@ -24,6 +24,7 @@ Fast Notes is a live room for one note. Everyone who joins does a 15-second cali
 
 - **Try it alone in 30 seconds:** real raters' real ratings are replayed as bots, so one judge can watch the mechanic work.
 - **Try it together:** press Invite, scan the QR with a phone, and you become the missing side.
+- **Watch a crowd:** the Live page runs six real notes at once. Real raters arrive one by one and a dispatcher sends each to the note that is most short of their side. Press "Join the crowd" and the dispatcher sends you too.
 - **See the evidence:** the Results page replays real notes in three orders: X's real order, random, and ours.
 
 ## Our result, on real data
@@ -54,7 +55,7 @@ Our model agrees with X's real status on **100%** of 70 sampled notes (3,151 rea
 
 ## What's next
 
-A "rater dispatch" that runs many rooms at once and sends each new arrival to the note that needs their side most, and a pilot with a newsroom's fact-check desk during a breaking event.
+Run the dispatcher on real arrivals, not simulated ones: an opt-in rater pool that gets a push notification when a note is missing their side, and a pilot with a newsroom's fact-check desk during a breaking event.
 
 ## Built with
 

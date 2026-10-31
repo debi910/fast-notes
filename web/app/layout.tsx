@@ -45,6 +45,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               <Link href="/demo" className="rounded-full px-3 py-1.5 hover:text-foreground">
                 Demo
               </Link>
+              <Link href="/live" className="rounded-full px-3 py-1.5 hover:text-foreground">
+                Live
+              </Link>
               <Link href="/notes" className="hidden rounded-full px-3 py-1.5 hover:text-foreground sm:block">
                 Notes
               </Link>

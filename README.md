@@ -4,7 +4,7 @@ Crowd fact-checks that arrive while a post is still spreading.
 
 > Built for **LovHack x TRMI: Multiplayer Everything**. Write-up: [docs/DEVPOST.md](docs/DEVPOST.md) (every number in it is generated from the data files).
 
-**Try it:** open the room alone and real raters' real ratings replay as bots. Or press **Invite**, scan the QR code with a phone, and become the side the note is missing.
+**Try it:** the Live page dispatches real raters across six notes at once. Open a room alone and real raters' real ratings replay as bots. Or press **Invite**, scan the QR code with a phone, and become the side the note is missing.
 
 ## The problem
 
