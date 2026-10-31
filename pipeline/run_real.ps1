@@ -37,9 +37,11 @@ Write-Host "== 3/3 Validating the JSON the web app reads" -ForegroundColor Cyan
 & $py pipeline\validate_data.py
 if ($LASTEXITCODE -ne 0) { Write-Host "Validation failed; nothing committed." -ForegroundColor Yellow; exit 1 }
 
+& $py pipeline\make_writeup.py
+
 if (-not $NoCommit) {
-    git add web/public/data/showcase_notes.json web/public/data/raters.json web/public/data/results.json
+    git add web/public/data/showcase_notes.json web/public/data/raters.json web/public/data/results.json docs/DEVPOST.md
     git commit -m "Real Community Notes data: sample, bridging fit and replay"
     Write-Host "Committed. Push with: git push origin main" -ForegroundColor Green
 }
-Write-Host "Done. The site now shows real notes (isMock=false)." -ForegroundColor Green
+Write-Host "Done. The site now shows real notes (isMock=false). Devpost text with the real numbers: docs\DEVPOST.md" -ForegroundColor Green

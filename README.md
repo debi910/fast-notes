@@ -2,7 +2,9 @@
 
 Crowd fact-checks that arrive while a post is still spreading.
 
-> Work in progress for **LovHack x TRMI: Multiplayer Everything**. Full write-up lands on Sunday.
+> Built for **LovHack x TRMI: Multiplayer Everything**. Write-up: [docs/DEVPOST.md](docs/DEVPOST.md) (every number in it is generated from the data files).
+
+**Try it:** open the room alone and real raters' real ratings replay as bots. Or press **Invite**, scan the QR code with a phone, and become the side the note is missing.
 
 ## The problem
 
@@ -48,6 +50,14 @@ pipeline\.venv\Scripts\python.exe pipeline\validate_data.py
 ```
 
 ### Real data
+
+One command on Windows (download, sample, fit, replay, validate, regenerate `docs/DEVPOST.md`, commit):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File pipeline\run_real.ps1
+```
+
+Or step by step:
 
 ```powershell
 pipeline\.venv\Scripts\python.exe pipeline\download.py --ratings 1      # notes, status history, 1 ratings file -> data/raw/
