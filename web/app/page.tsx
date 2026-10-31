@@ -5,6 +5,7 @@ import { LockIcon, RecruitIcon, SpotIcon } from "@/components/HowIcons";
 import { Reveal } from "@/components/Reveal";
 import { SpreadChart } from "@/components/SpreadChart";
 import { Timelines } from "@/components/Timelines";
+import { FeedDemoLoader } from "@/components/FeedDemoLoader";
 
 const STEPS = [
   {
@@ -54,10 +55,10 @@ export default function Home() {
                 <span className="rounded-full bg-background/15 px-2 py-0.5 text-xs">30 sec</span>
               </Link>
               <Link
-                href="/notes"
+                href="/demo"
                 className="pressable inline-flex items-center justify-center rounded-full border border-line bg-surface px-6 py-3.5 font-medium hover:border-foreground/30"
               >
-                Browse open notes
+                Watch it in a feed
               </Link>
             </div>
           </Reveal>
@@ -66,6 +67,18 @@ export default function Home() {
               <HeroIllustration />
             </div>
           </Reveal>
+        </div>
+      </section>
+
+      {/* Feed demo */}
+      <section className="mx-auto max-w-6xl px-4 py-14">
+        <Reveal>
+          <p className="text-sm font-semibold uppercase tracking-wider text-late">Watch it happen</p>
+          <h2 className="mt-2 max-w-[28ch] text-3xl font-semibold sm:text-4xl">One misleading post, two timelines.</h2>
+          <p className="mt-2 max-w-[58ch] text-muted">The same real note, shown when X decides versus when a Fast Notes room settles it.</p>
+        </Reveal>
+        <div className="mt-8">
+          <FeedDemoLoader />
         </div>
       </section>
 

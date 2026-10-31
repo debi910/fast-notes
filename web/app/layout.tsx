@@ -42,10 +42,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
               Fast Notes
             </Link>
             <div className="flex items-center gap-1 text-muted">
-              <Link href="/#how" className="hidden rounded-full px-3 py-1.5 hover:text-foreground sm:block">
-                How it works
+              <Link href="/demo" className="rounded-full px-3 py-1.5 hover:text-foreground">
+                Demo
               </Link>
-              <Link href="/notes" className="rounded-full px-3 py-1.5 hover:text-foreground">
+              <Link href="/notes" className="hidden rounded-full px-3 py-1.5 hover:text-foreground sm:block">
                 Notes
               </Link>
               <Link href="/results" className="hidden rounded-full px-3 py-1.5 hover:text-foreground sm:block">
