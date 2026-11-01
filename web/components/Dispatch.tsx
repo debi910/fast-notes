@@ -7,6 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { SIDE_BG, SIDE_LABEL, SIDE_TEXT } from "@/components/ViewpointBar";
 import { fmtDuration } from "@/components/room/shared";
 import { loadRaters, loadShowcase, useData } from "@/lib/data";
+import { isPlainEnglish } from "@/lib/display";
 import { refitNote, sideOf, verdict } from "@/lib/model";
 import { EASE_OUT } from "@/lib/motion";
 import type { ModelConfig, NoteRating, RatingValue, ShowcaseNote, Side, Verdict } from "@/lib/types";
@@ -91,7 +92,9 @@ function place(l: Lane, p: Pt, m: ModelConfig, clock: number): Lane {
 }
 
 function pickNotes(notes: ShowcaseNote[]): ShowcaseNote[] {
-  const decided = notes.filter((n) => n.fitted.verdict !== "UNDECIDED" && n.ratings.length >= 8);
+  const all = notes.filter((n) => n.fitted.verdict !== "UNDECIDED" && n.ratings.length >= 8);
+  const plain = all.filter((n) => n.plainEnglish ?? isPlainEnglish(n.summary));
+  const decided = plain.length >= N_NOTES ? plain : all;
   const helpful = decided
     .filter((n) => n.fitted.verdict === "HELPFUL")
     .sort((a, b) => (b.timeline.hoursNoteToStatus ?? 0) - (a.timeline.hoursNoteToStatus ?? 0));

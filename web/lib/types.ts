@@ -26,6 +26,8 @@ export interface NoteRating {
 }
 
 export interface ShowcaseNote {
+  /** Set by the loader from the raw text (links included): plain English, no charged topic. */
+  plainEnglish?: boolean;
   id: string;
   noteId: string;
   tweetId: string;
