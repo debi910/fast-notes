@@ -14,6 +14,10 @@ Usage (repo root):  pipeline\\.venv\\Scripts\\python.exe pipeline\\download.py [
 from __future__ import annotations
 
 import argparse
+import os
+import shutil
+import ssl
+import subprocess
 import sys
 import urllib.error
 import urllib.request
@@ -30,12 +34,48 @@ def url_for(d: date, folder: str, name: str) -> str:
     return f"{BASE}/{d:%Y/%m/%d}/{folder}/{name}.zip"
 
 
-def exists(url: str) -> bool:
-    req = urllib.request.Request(url, method="HEAD", headers=HEADERS)
+_warned = False
+
+
+def _ssl_context():
     try:
-        with urllib.request.urlopen(req, timeout=20) as r:
-            return r.status == 200
-    except (urllib.error.URLError, TimeoutError):
+        import certifi  # Windows Python often lacks a CA bundle; certifi fixes "certificate verify failed"
+
+        return ssl.create_default_context(cafile=certifi.where())
+    except ImportError:
+        return ssl.create_default_context()
+
+
+CTX = _ssl_context()
+
+
+def _curl_status(url: str) -> int:
+    curl = shutil.which("curl.exe") or shutil.which("curl")
+    if not curl:
+        return 0
+    out = subprocess.run([curl, "-s", "-o", os.devnull, "-w", "%{http_code}", "-r", "0-0", "-A", HEADERS["User-Agent"], url], capture_output=True, text=True, timeout=30)
+    return int(out.stdout.strip() or 0)
+
+
+def exists(url: str) -> bool:
+    """HEAD, then a 1-byte GET, then curl. Some networks or servers refuse HEAD."""
+    global _warned
+    for method, extra in (("HEAD", {}), ("GET", {"Range": "bytes=0-0"})):
+        req = urllib.request.Request(url, method=method, headers={**HEADERS, **extra})
+        try:
+            with urllib.request.urlopen(req, timeout=20, context=CTX) as r:
+                return r.status in (200, 206)
+        except urllib.error.HTTPError as e:
+            if e.code == 404:
+                return False
+        except (urllib.error.URLError, TimeoutError, OSError) as e:
+            if not _warned:
+                print(f"  (python could not reach ton.twimg.com: {e}; trying curl)")
+                _warned = True
+            break
+    try:
+        return _curl_status(url) in (200, 206)
+    except Exception:
         return False
 
 
@@ -44,8 +84,14 @@ def fetch(url: str, dest: Path) -> None:
         print(f"  have {dest.name}")
         return
     tmp = dest.with_suffix(dest.suffix + ".part")
+    curl = shutil.which("curl.exe") or shutil.which("curl")
+    if _warned and curl:
+        print(f"  downloading {dest.name} with curl")
+        subprocess.run([curl, "-L", "--fail", "-A", HEADERS["User-Agent"], "-o", str(tmp), url], check=True)
+        tmp.replace(dest)
+        return
     req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=300) as r, open(tmp, "wb") as f:
+    with urllib.request.urlopen(req, timeout=300, context=CTX) as r, open(tmp, "wb") as f:
         total = int(r.headers.get("Content-Length") or 0)
         done = 0
         while chunk := r.read(1 << 20):
@@ -61,12 +107,13 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--ratings", type=int, default=1, help="how many ratings-000XX files to fetch")
     ap.add_argument("--days", type=int, default=14, help="how many days back to look for a snapshot")
+    ap.add_argument("--date", help="snapshot date YYYY-MM-DD to use instead of searching back from today")
     ap.add_argument("--latest", action="store_true", help="fetch the highest-numbered ratings file (most recent ratings) instead of 00000")
     args = ap.parse_args()
 
     RAW.mkdir(parents=True, exist_ok=True)
-    snap = None
-    for back in range(args.days + 1):
+    snap = date.fromisoformat(args.date) if args.date else None
+    for back in ([] if snap else range(args.days + 1)):
         d = date.today() - timedelta(days=back)
         if exists(url_for(d, "notes", "notes-00000")):
             snap = d

@@ -43,6 +43,6 @@ if ($LASTEXITCODE -ne 0) { Write-Host "Validation failed; nothing committed." -F
 if (-not $NoCommit) {
     git add web/public/data/showcase_notes.json web/public/data/raters.json web/public/data/results.json docs/DEVPOST.md
     git commit -m "Real Community Notes data: sample, bridging fit and replay"
-    Write-Host "Committed. Push with: git push origin main" -ForegroundColor Green
+    Write-Host "Committed. Push with: git push https://debi910:YOUR_TOKEN@github.com/debi910/fast-notes.git main" -ForegroundColor Green
 }
 Write-Host "Done. The site now shows real notes (isMock=false). Devpost text with the real numbers: docs\DEVPOST.md" -ForegroundColor Green
