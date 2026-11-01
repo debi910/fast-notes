@@ -2,6 +2,16 @@
 
 Crowd fact-checks that arrive while a post is still spreading.
 
+**Live app: [fast-notes-nine.vercel.app](https://fast-notes-nine.vercel.app/)**
+
+![Fast Notes](docs/gallery/01-landing.png)
+
+| Two timelines | Multiplayer by QR | Live dispatch |
+|---|---|---|
+| ![feed](docs/gallery/02-feed.png) | ![multiplayer](docs/gallery/04-multiplayer.png) | ![live](docs/gallery/05-live.png) |
+
+Built as a team in TRMI: see [docs/trmi/](docs/trmi/) (the shared project with both of us in the call, Claude's commits in the Git graph, and the plan and pipeline run).
+
 > Built for **LovHack x TRMI: Multiplayer Everything**. Write-up: [docs/DEVPOST.md](docs/DEVPOST.md) (every number in it is generated from the data files).
 
 **Try it:** the Live page dispatches real raters across six notes at once. Open a room alone and real raters' real ratings replay as bots. Or press **Invite**, scan the QR code with a phone, and become the side the note is missing.
