@@ -45,7 +45,7 @@ def fetch(url: str, dest: Path) -> None:
         return
     tmp = dest.with_suffix(dest.suffix + ".part")
     req = urllib.request.Request(url, headers=HEADERS)
-    with urllib.request.urlopen(req, timeout=60) as r, open(tmp, "wb") as f:
+    with urllib.request.urlopen(req, timeout=300) as r, open(tmp, "wb") as f:
         total = int(r.headers.get("Content-Length") or 0)
         done = 0
         while chunk := r.read(1 << 20):
