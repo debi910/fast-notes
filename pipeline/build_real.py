@@ -66,7 +66,7 @@ def snowflake_ms(tweet_id: str) -> int | None:
 
 CHARGED = re.compile(
     r"epstein|trump|biden|harris|election|israel|gaza|hamas|idf|palestin|ukrain|russia|putin|abortion|vaccin|covid|"
-    r"muslim|jewish|islam|trans\b|immigra|nazi|genocide|shooting|terror",
+    r"muslim|jewish|islam|trans\b|immigra|nazi|genocide|shooting|terror|boebert|trudeau|sunak|starmer|congress|senator",
     re.I,
 )
 
