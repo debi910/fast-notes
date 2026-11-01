@@ -59,8 +59,10 @@ export default function ResultsPage() {
       <p className="text-sm font-semibold uppercase tracking-wider text-side-a">Replay experiment</p>
       <h1 className="mt-2 max-w-[24ch] text-3xl font-semibold sm:text-4xl">{headline(s)}</h1>
       <p className="mt-3 max-w-[62ch] text-muted">
-        We took {s.nReplayed} notes X rated helpful and replayed their real ratings three ways, refitting the bridging model after each
-        one. We count how many ratings it takes until the verdict is final.
+        We took {s.nReplayed} notes X rated helpful and replayed their real ratings, refitting the bridging model after each one. In X&apos;s
+        real order the verdict was already final after a median of {s.medianKActual} ratings, which were in within{" "}
+        {fmtDuration(s.medianHoursToKActual)}. X showed those notes after {fmtDuration(s.medianHoursNoteToStatus)}. A Fast Notes room
+        scores every rating as it lands, so the verdict locks as soon as the crowd has reached it.
       </p>
 
       <dl className="mt-8 grid grid-cols-3 gap-px overflow-hidden rounded-2xl border border-line bg-line">
@@ -153,8 +155,10 @@ export default function ResultsPage() {
           )}
         </div>
         <p className="mt-2 text-xs text-muted">
-          Each row is one note. Fewer ratings is better. Targeted order is as fast or faster than random on {s.pctTargetedNoSlower}% of
-          notes.
+          Each row is one note. Fewer ratings is better. Asking the missing side first beats random order on {s.pctTargetedFaster}% of notes,
+          ties on {Math.round((s.pctTargetedNoSlower - s.pctTargetedFaster) * 10) / 10}% and is slower on{" "}
+          {Math.round((100 - s.pctTargetedNoSlower) * 10) / 10}%. Most notes settle at the five-rating minimum whatever the order, so on
+          this sample the time is lost waiting for the scorer, not in the order ratings arrive.
         </p>
       </section>
 

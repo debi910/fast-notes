@@ -8,9 +8,9 @@ Crowd fact-checks that land while a post is still spreading, not a day later.
 
 ## Inspiration
 
-> "The shown list is a fake. The court has released the real list on 2023/01/03 https://www.theguardian.com/us-news/2024/jan/03/jeffrey-epstein-list-names-released https://uploads.guim.co.uk/2024/01/04/Final_Epstein_documents.pdf"
+> "This is two different photos combined into one image. https://www.reddit.com/r/spaceporn/comments/q58oyi/comment/hg5qw50/"
 >
-> A real Community Note. It was written 3.7 hours after the post. The ratings that settled it were in by hour 0.4. Readers saw it **33.4 hours** after it was written.
+> A real Community Note. It was written 1.5 hours after the post. The ratings that settled it were in by hour 0.2. Readers saw it **9.4 hours** after it was written.
 
 That gap is normal. X's Community Notes take a median **18.1 hours** to appear, while half of a post's reposts happen in the first **5.75 hours** (Chuai et al., arXiv:2409.08781). Only 11.5% of notes ever reach a verdict (Razuvayevskaya et al., arXiv:2510.12559).
 
@@ -27,7 +27,9 @@ Fast Notes is a live room for one note. Everyone who joins does a 15-second cali
 
 ## Our result, on real data
 
-On 313 real notes that X rated helpful, the ratings that decide the verdict were in after a median of **25 minutes**, but X showed the note after **3.8 hours**. Targeted order needs a median of 5 ratings vs 5 for random order (faster on 6% of notes, never slower on 74%).
+On 313 real notes that X rated helpful, the ratings that decide the verdict were in after a median of **25 minutes**, but X showed the note after **3.8 hours**. The crowd had already agreed; readers just couldn't see it yet. A Fast Notes room scores every rating as it lands, so the verdict locks the moment it exists.
+
+We also tested whether asking the missing side first needs fewer ratings. Honestly, on this sample it doesn't: the median is 5 ratings either way, because most notes settle at the five-rating minimum. Targeting beat random order on 6% of notes and lost on 26%. Where we think the room matters most is the 88.5% of notes that never settle on X. We couldn't test that from public data, because those notes never got the ratings a replay needs.
 
 Our model agrees with X's real status on **76%** of 1000 sampled notes (86,725 real ratings from 14,424 raters, X data snapshot 2026-10-31).
 

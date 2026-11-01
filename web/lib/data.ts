@@ -40,7 +40,11 @@ export function useData<T>(loader: () => Promise<T>): { data: T | null; error: s
 
 /** The best solo-demo note: decided helpful, and where targeted ordering beats random the most. */
 export function pickDemoNote(notes: ShowcaseNote[]): ShowcaseNote {
-  const scored = notes
+  // Short enough to settle in a 30-second demo, and readable by an English-speaking judge.
+  const plain = (t: string) => /\b(the|is|was|not|this)\b/i.test(t) && [...t].filter((c) => c.charCodeAt(0) < 128).length / t.length > 0.95;
+  const CHARGED = /epstein|trump|biden|election|israel|gaza|hamas|idf|ukrain|russia|abortion|vaccin|covid|muslim|jewish|nazi|genocide/i;
+  const fast = notes.filter((n) => (n.replay.kTargeted ?? 99) <= 12 && plain(n.summary) && !CHARGED.test(n.summary));
+  const scored = (fast.length ? fast : notes)
     .filter((n) => n.fitted.verdict === "HELPFUL" && n.replay.kTargeted && n.replay.kRandomMedian)
     .map((n) => ({ n, gain: (n.replay.kRandomMedian ?? 0) - (n.replay.kTargeted ?? 0) }))
     .sort((a, b) => b.gain - a.gain);

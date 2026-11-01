@@ -64,6 +64,22 @@ def snowflake_ms(tweet_id: str) -> int | None:
         return None
 
 
+CHARGED = re.compile(
+    r"epstein|trump|biden|harris|election|israel|gaza|hamas|idf|palestin|ukrain|russia|putin|abortion|vaccin|covid|"
+    r"muslim|jewish|islam|trans\b|immigra|nazi|genocide|shooting|terror",
+    re.I,
+)
+
+
+def plain_english(s: str) -> bool:
+    """Readable by an English-speaking judge and not about a charged topic."""
+    t = clean_text(s)
+    if not t or CHARGED.search(t):
+        return False
+    ascii_share = sum(c.isascii() for c in t) / len(t)
+    return ascii_share > 0.95 and bool(re.search(r"\b(the|is|was|not|this|and)\b", t, re.I))
+
+
 def clean_text(s: object) -> str:
     t = re.sub(r"\s+", " ", str(s or "")).strip()
     return t
@@ -312,7 +328,10 @@ def main() -> int:
     showcase_ids = [r["noteId"] for r in helpful + stuck + nothelp]
 
     # Calibration: decided notes spread along f_n, so 5 answers place a viewer.
-    dec = sorted((r for r in ok if records[r["noteId"]]["ours"] != "UNDECIDED" and r["noteId"] not in showcase_ids), key=lambda r: records[r["noteId"]]["f_n"])
+    dec = sorted(
+        (r for r in ok if records[r["noteId"]]["ours"] != "UNDECIDED" and r["noteId"] not in showcase_ids and plain_english(notes_by_id.loc[r["noteId"], "summary"])),
+        key=lambda r: records[r["noteId"]]["f_n"],
+    )
     if len(dec) < 5:
         dec = sorted((r for r in ok if r["noteId"] not in showcase_ids), key=lambda r: records[r["noteId"]]["f_n"])
     calib_ids = [dec[int(q * (len(dec) - 1))]["noteId"] for q in (0, 0.2, 0.5, 0.8, 1.0)] if len(dec) >= 5 else []
