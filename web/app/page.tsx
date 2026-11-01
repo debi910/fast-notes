@@ -1,6 +1,7 @@
 import Link from "next/link";
+import { fmtDuration } from "@/components/room/shared";
+import results from "@/public/data/results.json";
 import { CountUp } from "@/components/CountUp";
-import { HeroIllustration } from "@/components/HeroIllustration";
 import { LockIcon, RecruitIcon, SpotIcon } from "@/components/HowIcons";
 import { Reveal } from "@/components/Reveal";
 import { SpreadChart } from "@/components/SpreadChart";
@@ -31,7 +32,7 @@ export default function Home() {
       {/* Hero */}
       <section className="relative">
         <div className="dot-grid pointer-events-none absolute inset-0 [mask-image:radial-gradient(ellipse_at_70%_40%,black,transparent_70%)]" />
-        <div className="relative mx-auto grid max-w-6xl items-center gap-8 px-4 pb-12 pt-10 sm:pt-16 lg:grid-cols-[1.1fr_1fr]">
+        <div className="relative mx-auto max-w-6xl px-4 pb-6 pt-10 sm:pt-14">
           <Reveal>
             <p className="inline-flex items-center gap-2 rounded-full border border-line bg-surface px-3 py-1 text-xs font-medium text-muted">
               <span className="h-1.5 w-1.5 rounded-full bg-late" />
@@ -43,8 +44,10 @@ export default function Home() {
               Half the damage is done in <span className="font-serif font-normal italic">6</span>.
             </h1>
             <p className="mt-5 max-w-[52ch] text-lg text-muted">
-              Fast Notes is a live room that brings the missing viewpoint to a Community Note and settles it while the post is
-              still spreading.
+              In X&apos;s own data, the ratings that decide a note are in after a median of{" "}
+              <b className="text-foreground">{fmtDuration(results.summary.medianHoursToKActual)}</b>. Readers see the note after{" "}
+              <b className="text-late">{fmtDuration(results.summary.medianHoursNoteToStatus)}</b>. Fast Notes is a live room that scores every
+              rating as it lands and calls in the side that&apos;s missing.
             </p>
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
@@ -55,30 +58,25 @@ export default function Home() {
                 <span className="rounded-full bg-background/15 px-2 py-0.5 text-xs">30 sec</span>
               </Link>
               <Link
-                href="/demo"
+                href="#watch"
                 className="pressable inline-flex items-center justify-center rounded-full border border-line bg-surface px-6 py-3.5 font-medium hover:border-foreground/30"
               >
                 Watch it in a feed
               </Link>
             </div>
           </Reveal>
-          <Reveal delay={0.15}>
-            <div className="card relative p-2 sm:p-4">
-              <HeroIllustration />
-            </div>
-          </Reveal>
         </div>
       </section>
 
       {/* Feed demo */}
-      <section className="mx-auto max-w-6xl px-4 py-14">
+      <section id="watch" className="mx-auto max-w-6xl scroll-mt-20 px-4 pb-14 pt-6">
         <Reveal>
           <p className="text-sm font-semibold uppercase tracking-wider text-late">Watch it happen</p>
           <h2 className="mt-2 max-w-[28ch] text-3xl font-semibold sm:text-4xl">One misleading post, two timelines.</h2>
           <p className="mt-2 max-w-[58ch] text-muted">The same real note, shown when X decides versus when a Fast Notes room settles it.</p>
         </Reveal>
         <div className="mt-8">
-          <FeedDemoLoader />
+          <FeedDemoLoader pick="feed" />
         </div>
       </section>
 

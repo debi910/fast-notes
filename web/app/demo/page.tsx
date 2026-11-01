@@ -10,7 +10,7 @@ export default function DemoPage() {
         missing side as soon as the note is written.
       </p>
       <div className="mt-8">
-        <FeedDemoLoader />
+        <FeedDemoLoader pick="feed" />
       </div>
     </div>
   );

@@ -51,6 +51,19 @@ export function pickDemoNote(notes: ShowcaseNote[]): ShowcaseNote {
   return scored[0]?.n ?? notes[0];
 }
 
+/** For the two-timeline feed: a plain-English note written soon after the post that X then showed late. */
+export function pickFeedNote(notes: ShowcaseNote[]): ShowcaseNote {
+  const ok = notes.filter(
+    (n) =>
+      n.fitted.verdict === "HELPFUL" &&
+      n.plainEnglish !== false &&
+      n.timeline.hoursNoteToStatus !== null &&
+      n.timeline.hoursPostToNote !== null &&
+      n.timeline.hoursPostToNote <= 4,
+  );
+  return ok.sort((a, b) => (b.timeline.hoursNoteToStatus ?? 0) - (a.timeline.hoursNoteToStatus ?? 0))[0] ?? pickDemoNote(notes);
+}
+
 export function findNote(file: ShowcaseFile, roomId: string): ShowcaseNote {
   if (roomId === "demo") return pickDemoNote(file.notes);
   return file.notes.find((n) => n.id === roomId || n.noteId === roomId) ?? pickDemoNote(file.notes);

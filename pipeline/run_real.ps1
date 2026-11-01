@@ -5,7 +5,8 @@
 param(
     [int]$Ratings = 1,        # ratings files to download (each is large; 1 is usually enough)
     [int]$MaxNotes = 1000,
-    [switch]$NoCommit
+    [switch]$NoCommit,
+    [switch]$Latest           # use X's newest ratings file, so the notes are recent
 )
 $ErrorActionPreference = "Stop"
 Set-Location (Split-Path $PSScriptRoot -Parent)
@@ -19,7 +20,7 @@ Write-Host "== Installing Python packages" -ForegroundColor Cyan
 & $py -m pip install -q -r pipeline\requirements.txt
 
 Write-Host "== 1/3 Downloading public Community Notes data (notes, status history, $Ratings ratings file)" -ForegroundColor Cyan
-& $py pipeline\download.py --ratings $Ratings
+if ($Latest) { & $py pipeline\download.py --ratings $Ratings --latest } else { & $py pipeline\download.py --ratings $Ratings }
 if ($LASTEXITCODE -ne 0) {
     Write-Host "Automatic download failed. Open https://x.com/i/communitynotes/download-data (signed in)," -ForegroundColor Yellow
     Write-Host "save notes-00000, noteStatusHistory-00000 and ratings-00000 into data\raw\, then run this script again." -ForegroundColor Yellow

@@ -61,6 +61,7 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--ratings", type=int, default=1, help="how many ratings-000XX files to fetch")
     ap.add_argument("--days", type=int, default=14, help="how many days back to look for a snapshot")
+    ap.add_argument("--latest", action="store_true", help="fetch the highest-numbered ratings file (most recent ratings) instead of 00000")
     args = ap.parse_args()
 
     RAW.mkdir(parents=True, exist_ok=True)
@@ -77,7 +78,22 @@ def main() -> int:
     (RAW / "SNAPSHOT_DATE").write_text(snap.isoformat(), encoding="utf-8")
 
     files = [("notes", "notes-00000"), ("noteStatusHistory", "noteStatusHistory-00000")]
-    files += [("noteRatings", f"ratings-{i:05d}") for i in range(args.ratings)]
+    if args.latest:
+        last = -1
+        while last < 99 and exists(url_for(snap, "noteRatings", f"ratings-{last + 1:05d}")):
+            last += 1
+        if last < 0:
+            print("No ratings files found for this snapshot.")
+            return 1
+        print(f"Newest ratings file: ratings-{last:05d}")
+        # Drop older ratings files so the build only samples recent notes.
+        for old in RAW.glob("ratings-*"):
+            if old.stem != f"ratings-{last:05d}":
+                print(f"  removing {old.name}")
+                old.unlink()
+        files += [("noteRatings", f"ratings-{i:05d}") for i in range(max(0, last - args.ratings + 1), last + 1)]
+    else:
+        files += [("noteRatings", f"ratings-{i:05d}") for i in range(args.ratings)]
     for folder, name in files:
         fetch(url_for(snap, folder, name), RAW / f"{name}.zip")
     print("Done. Next: pipeline\\.venv\\Scripts\\python.exe pipeline\\build_real.py")
